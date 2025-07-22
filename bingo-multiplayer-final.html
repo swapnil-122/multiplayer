@@ -1,0 +1,140 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Bingo Multiplayer</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f4f4; text-align: center; padding: 20px; }
+    h1 { color: #333; }
+    #gameBoard { display: grid; grid-template-columns: repeat(5, 60px); gap: 5px; margin: 20px auto; }
+    .cell { width: 60px; height: 60px; background: #fff; border: 2px solid #ccc; display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; }
+    .marked { background: #4caf50; color: white; }
+    #room { margin: 20px auto; }
+    button { padding: 10px 20px; font-size: 16px; margin: 10px; }
+    #turnStatus { margin-top: 10px; font-weight: bold; color: #007BFF; }
+  </style>
+</head>
+<body>
+  <h1>Bingo Multiplayer</h1>
+  <div id="room">
+    <input type="text" id="roomId" placeholder="Room ID"/>
+    <button onclick="createRoom()">Create Room</button>
+    <button onclick="joinRoom()">Join Room</button>
+  </div>
+  <div id="turnStatus"></div>
+  <div id="gameBoard"></div>
+  <button onclick="resetGame()">Reset Game</button>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getDatabase, ref, set, get, update, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAGbFcsrngz9m71P7XuLmnsDyysO_vgmTk",
+      authDomain: "bingo-multiplayer-648d3.firebaseapp.com",
+      databaseURL: "https://bingo-multiplayer-648d3-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "bingo-multiplayer-648d3",
+      storageBucket: "bingo-multiplayer-648d3.appspot.com",
+      messagingSenderId: "562670400854",
+      appId: "1:562670400854:web:d2621817f3e3eb88dc52f7",
+      measurementId: "G-WCR56KEB72"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const gameBoard = document.getElementById("gameBoard");
+    const roomInput = document.getElementById("roomId");
+    const turnStatus = document.getElementById("turnStatus");
+
+    let room = "";
+    let player = "";
+    let boardNumbers = [];
+    let isMyTurn = false;
+
+    function generateBoard() {
+      gameBoard.innerHTML = "";
+      boardNumbers = [];
+      while (boardNumbers.length < 25) {
+        let num = Math.floor(Math.random() * 75) + 1;
+        if (!boardNumbers.includes(num)) boardNumbers.push(num);
+      }
+
+      boardNumbers.forEach(num => {
+        const cell = document.createElement("div");
+        cell.className = "cell";
+        cell.innerText = num;
+        cell.addEventListener("click", () => selectNumber(num, cell));
+        gameBoard.appendChild(cell);
+      });
+    }
+
+    function createRoom() {
+      room = roomInput.value.trim();
+      if (!room) return alert("Enter Room ID");
+      player = "A";
+      set(ref(db, "rooms/" + room), {
+        playerA: { board: boardNumbers },
+        turn: "A",
+        picked: []
+      }).then(() => {
+        isMyTurn = true;
+        turnStatus.innerText = "Your Turn (Player A)";
+      });
+    }
+
+    function joinRoom() {
+      room = roomInput.value.trim();
+      if (!room) return alert("Enter Room ID");
+      player = "B";
+      get(ref(db, "rooms/" + room)).then(snapshot => {
+        if (!snapshot.exists()) return alert("Room doesn't exist!");
+        update(ref(db, "rooms/" + room + "/playerB"), { board: boardNumbers });
+        isMyTurn = false;
+        turnStatus.innerText = "Opponent's Turn (Player A)";
+      });
+    }
+
+    function selectNumber(num, cell) {
+      if (!isMyTurn || cell.classList.contains("marked")) return;
+      cell.classList.add("marked");
+      update(ref(db, "rooms/" + room), {
+        picked: [...document.querySelectorAll(".marked")].map(c => parseInt(c.innerText)),
+        turn: player === "A" ? "B" : "A"
+      });
+      isMyTurn = false;
+      turnStatus.innerText = "Opponent's Turn";
+    }
+
+    function resetGame() {
+      if (!room) return alert("No room active.");
+      remove(ref(db, "rooms/" + room)).then(() => {
+        alert("Game reset. Refresh to start again.");
+        location.reload();
+      });
+    }
+
+    function syncGame() {
+      onValue(ref(db, "rooms/" + room), snapshot => {
+        const data = snapshot.val();
+        if (!data) return;
+        isMyTurn = data.turn === player;
+        turnStatus.innerText = isMyTurn ? "Your Turn" : "Opponent's Turn";
+
+        const picked = data.picked || [];
+        document.querySelectorAll(".cell").forEach(cell => {
+          if (picked.includes(parseInt(cell.innerText))) {
+            cell.classList.add("marked");
+          }
+        });
+      });
+    }
+
+    roomInput.addEventListener("change", generateBoard);
+    setTimeout(generateBoard, 100); // Auto-generate on load
+    setInterval(() => { if (room) syncGame(); }, 2000); // Polling Firebase for updates
+  </script>
+</body>
+</html>
