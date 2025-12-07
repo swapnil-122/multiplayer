@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+<title>Tap Coin Deluxe — Ultimate</title>
+<style>
+  :root{
+    --bg:#08121a;
+    --panel: rgba(255,255,255,0.06);
+    --accent:#f5c04a;
+    --text:#ffffff;
+  }
+  html,body{height:100%;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;}
+  body{
+    background: linear-gradient(180deg,var(--bg),#051018);
+    color:var(--text);
+    overflow:hidden;
+    -webkit-user-select:none;user-select:none;
+    -webkit-tap-highlight-color:transparent;
+  }
+  canvas{display:block;background:transparent;touch-action:none;}
+  #ui {
+    position:absolute;left:10px;top:10px;z-index:20;
+    display:flex;gap:12px;align-items:center;
+    pointer-events:none;
+  }
+  .panel{
+    pointer-events:auto;
+    background:var(--panel);
+    padding:8px 12px;border-radius:10px;
+    font-weight:600;font-size:14px;
+    box-shadow:0 6px 18px rgba(0,0,0,0.5);
+    display:flex;gap:8px;align-items:center;
+  }
+  #score { min-width:80px;}
+  #controls { position:absolute; right:10px; top:10px; display:flex; gap:8px; flex-direction:column; z-index:21; }
+  .btn{
+    pointer-events:auto;
+    background:transparent;border:1px solid rgba(255,255,255,0.12);
+    color:var(--text);padding:8px 10px;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;
+  }
+  .small{padding:6px 8px;font-size:12px}
+  #bottomUI{ position:absolute; left:10px; right:10px; bottom:10px; z-index:22; display:flex; justify-content:space-between; gap:12px;}
+  .hudPanel{ background:linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01)); padding:10px;border-radius:12px; display:flex; gap:10px; align-items:center;}
+  #shop, #settings, #highscores, #skins { display:none; position:absolute; z-index:30; left:50%; top:50%; transform:translate(-50%,-50%); width:92%; max-width:520px; background:linear-gradient(180deg, rgba(0,0,0,0.85), rgba(255,255,255,0.02)); border-radius:14px; padding:14px; box-shadow:0 12px 36px rgba(0,0,0,0.6);}
+  .modalHeader{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+  .modalTitle{font-size:18px;font-weight:800}
+  .closeBtn{background:transparent;border:0;color:var(--text);font-weight:800;font-size:18px;cursor:pointer}
+  .shopItem{display:flex;justify-content:space-between;padding:8px;border-radius:8px;margin:6px 0;}
+  .shopItem button{padding:6px 10px;border-radius:8px;border:0;background:var(--accent);cursor:pointer;color:#000;font-weight:800}
+  #gameOver{ display:none; position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,0.6), rgba(0,0,0,0.7)); z-index:40; align-items:center; justify-content:center; flex-direction:column; gap:12px; }
+  #gameOver .panel{font-size:20px;padding:18px 24px}
+  #highScoreList{max-height:220px;overflow:auto;margin-top:6px;padding-right:6px;}
+  .levelBar{ height:8px; background:rgba(255,255,255,0.06); border-radius:6px; overflow:hidden;}
+  .levelFill{ height:100%; background:linear-gradient(90deg,#ffd37a,#ff8a5b); width:0%;}
+  .stat{font-size:13px;color:rgba(255,255,255,0.85)}
+  label.switch{display:inline-flex;align-items:center;gap:8px;cursor:pointer}
+  .skinTile{display:inline-flex;align-items:center;justify-content:center;width:72px;height:48px;border-radius:10px;margin:6px;border:1px solid rgba(255,255,255,0.06);cursor:pointer}
+  footer{position:absolute;left:0;right:0;bottom:0;text-align:center;font-size:12px;color:rgba(255,255,255,0.35);padding:6px;z-index:10}
+  @media (min-width:900px){ #shop,#settings,#skins{ max-width:700px } }
+</style>
+</head>
+<body>
+  <div id="ui">
+    <div id="score" class="panel">Score: <span id="scoreValue">0</span></div>
+    <div id="lives" class="panel">Lives: <span id="livesValue">3</span></div>
+    <div id="level" class="panel">Level: <span id="levelValue">1</span></div>
+  </div>
+
+  <div id="controls">
+    <button id="btnShop" class="btn small">Shop</button>
+    <button id="btnSkins" class="btn small">Skins</button>
+    <button id="btnSettings" class="btn small">Settings</button>
+  </div>
+
+  <div id="bottomUI">
+    <div class="hudPanel panel">Coins: <strong id="coinsValue" style="margin-left:8px">0</strong></div>
+    <div class="hudPanel panel">Combo: <strong id="comboValue" style="margin-left:8px">x1</strong></div>
+  </div>
+
+  <div id="shop" role="dialog" aria-modal="true">
+    <div class="modalHeader">
+      <div class="modalTitle">Shop — Upgrades</div>
+      <button class="closeBtn" data-close="shop">×</button>
+    </div>
+    <div id="shopItems"></div>
+    <div style="margin-top:10px" class="stat">Your coins: <strong id="shopCoins">0</strong></div>
+  </div>
+
+  <div id="skins" role="dialog" aria-modal="true">
+    <div class="modalHeader">
+      <div class="modalTitle">Skins & Themes</div>
+      <button class="closeBtn" data-close="skins">×</button>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px" id="skinList"></div>
+  </div>
+
+  <div id="settings" role="dialog" aria-modal="true">
+    <div class="modalHeader">
+      <div class="modalTitle">Settings</div>
+      <button class="closeBtn" data-close="settings">×</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <label class="switch"><input id="toggleSound" type="checkbox"> Sound Effects</label>
+      <label class="switch"><input id="toggleMusic" type="checkbox"> Music</label>
+      <div class="stat">Touch-and-drag the collector at the bottom to catch coins. Tap coins to pop them for combos.</div>
+    </div>
+  </div>
+
+  <div id="gameOver" style="display:flex;">
+    <div class="panel">
+      <div id="gameOverTitle" style="font-size:22px;font-weight:900">Game Over</div>
+      <div style="margin-top:8px">Score: <strong id="finalScore">0</strong></div>
+      <div style="margin-top:8px">Coins Earned: <strong id="finalCoins">0</strong></div>
+      <div id="highScoreWrap" style="margin-top:10px">
+        <div style="font-weight:800">High Scores</div>
+        <div id="highScoreList"></div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:12px;justify-content:center">
+        <button id="restartBtn" class="btn">Restart</button>
+        <button id="toShopBtn" class="btn">Shop</button>
+      </div>
+    </div>
+  </div>
+
+  <canvas id="gameCanvas"></canvas>
+
+  <footer>Tap Coin Deluxe — touch friendly • Skins & upgrades saved locally</footer>
+
+<script src="games.js"></script>
+</body>
+</html>

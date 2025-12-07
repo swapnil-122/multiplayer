@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PlayChat - Home</title>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
+    * { margin:0; padding:0; box-sizing:border-box; font-family:'Poppins', sans-serif; }
+
+    body, html {
+        width:100%; height:100%;
+        background: linear-gradient(135deg,#667eea,#764ba2,#ff758c,#ff7eb3);
+        background-size:400% 400%;
+        animation:gradientBG 15s ease infinite;
+        display:flex; flex-direction:column;
+        color:#fff;
+    }
+
+    @keyframes gradientBG {
+        0%{background-position:0% 50%;}
+        50%{background-position:100% 50%;}
+        100%{background-position:0% 50%;}
+    }
+
+    .header {
+        width:100%;
+        height:60px;
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        padding:0 20px;
+        background: rgba(0,0,0,0.3);
+        backdrop-filter: blur(12px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        position:sticky; top:0;
+        z-index:100;
+    }
+    .header h1 { font-size:1.6rem; font-weight:700; }
+    .header button {
+        padding:8px 18px;
+        border:none;
+        border-radius:30px;
+        background: linear-gradient(90deg,#ff758c,#ff7eb3);
+        color:#fff; font-weight:600;
+        cursor:pointer; transition:all 0.3s ease;
+        box-shadow:0 4px 10px rgba(0,0,0,0.2);
+    }
+    .header button:hover { transform:scale(1.1); box-shadow:0 6px 14px rgba(0,0,0,0.3); }
+
+    .container {
+        flex:1;
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+        padding:20px;
+        overflow-y:auto;
+    }
+
+    .section-card {
+        width:90%; max-width:420px;
+        margin-bottom:20px;
+        padding:25px;
+        border-radius:25px;
+        background: rgba(255,255,255,0.12);
+        backdrop-filter: blur(15px);
+        text-align:center;
+        cursor:pointer;
+        transition:all 0.3s ease;
+        box-shadow:0 8px 20px rgba(0,0,0,0.25);
+        border:1px solid rgba(255,255,255,0.15);
+    }
+    .section-card:hover {
+        transform:translateY(-5px) scale(1.03);
+        box-shadow:0 12px 30px rgba(0,0,0,0.3);
+    }
+    .section-card h2 { font-size:1.4rem; margin-bottom:8px; font-weight:700; }
+    .section-card p { font-size:1rem; color:#eee; }
+
+    /* Bottom Navigation */
+    .bottom-nav {
+        width:100%;
+        height:65px;
+        display:flex;
+        justify-content:space-around;
+        align-items:center;
+        background: rgba(0,0,0,0.3);
+        backdrop-filter: blur(12px);
+        position:sticky; bottom:0;
+        box-shadow:0 -4px 12px rgba(0,0,0,0.25);
+        transition:all 0.3s ease;
+    }
+    .bottom-nav button {
+        background:none; border:none;
+        display:flex; flex-direction:column; align-items:center;
+        font-size:0.75rem; color:#fff;
+        cursor:pointer;
+        transition:all 0.3s ease;
+    }
+    .bottom-nav button img { width:28px; height:28px; margin-bottom:3px; }
+    .bottom-nav button.active { color:#ffb6c1; transform:scale(1.1); }
+
+    @media(max-width:420px){
+        .header h1 { font-size:1.4rem; }
+        .section-card h2 { font-size:1.2rem; }
+        .section-card p { font-size:0.9rem; }
+        .bottom-nav button img { width:24px; height:24px; }
+    }
+</style>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+<script src="firebase.js"></script>
+<script src="auth.js"></script>
+<script src="app.js"></script>
+</head>
+<body>
+
+<div class="header">
+    <h1>PlayChat</h1>
+    <button onclick="logout()">Logout</button>
+</div>
+
+<div class="container">
+    <!-- Sections -->
+    <div class="section-card" onclick="goChats()">
+        <h2>Chats</h2>
+        <p>Talk to your friends instantly.</p>
+    </div>
+
+    <div class="section-card" onclick="goProfile()">
+        <h2>Profile</h2>
+        <p>View and edit your profile.</p>
+    </div>
+
+    <div class="section-card" onclick="goGames()">
+        <h2>Games</h2>
+        <p>Play fun games with friends.</p>
+    </div>
+
+    <div class="section-card" onclick="goFriends()">
+        <h2>Friends</h2>
+        <p>Add and manage your friends.</p>
+    </div>
+</div>
+
+<div class="bottom-nav">
+    <button onclick="goHome()" class="active"><img src="icons/home.png" />Home</button>
+    <button onclick="goChats()"><img src="icons/chat.png" />Chats</button>
+    <button onclick="goGames()"><img src="icons/game.png" />Games</button>
+    <button onclick="goProfile()"><img src="icons/profile.png" />Profile</button>
+    <button onclick="goFriends()"><img src="icons/friends.png" />Friends</button>
+</div>
+
+</body>
+</html>

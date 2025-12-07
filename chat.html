@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>PlayChat - Chats</title>
+
+<!-- Fonts & Icons -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
+<!-- Emoji button library -->
+<script src="https://cdn.jsdelivr.net/npm/@joeattardi/emoji-button@4.6.2/dist/index.min.js"></script>
+
+<style>
+    :root{
+        --bg1: #667eea;
+        --bg2: #764ba2;
+        --accent1: #ff758c;
+        --accent2: #ff7eb3;
+        --glass: rgba(255,255,255,0.06);
+        --glass-strong: rgba(255,255,255,0.12);
+        --text: #ffffff;
+        --muted: rgba(255,255,255,0.85);
+        --surface: rgba(255,255,255,0.03);
+        --ok: #34d399;
+    }
+    *{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;-webkit-font-smoothing:antialiased;}
+    html,body,#app{height:100%;}
+    body {
+        background: linear-gradient(135deg,var(--bg1),var(--bg2),var(--accent1),var(--accent2));
+        background-size: 400% 400%;
+        animation: gradientBG 18s linear infinite;
+        color:var(--text);
+        display:flex;
+        flex-direction:column;
+        min-height:100vh;
+        -webkit-tap-highlight-color: transparent;
+    }
+    @keyframes gradientBG {
+        0%{background-position:0% 50%;}
+        50%{background-position:100% 50%;}
+        100%{background-position:0% 50%;}
+    }
+
+    /* App container */
+    .app-shell{
+        width:100%;
+        max-width:1100px;
+        margin:20px auto;
+        height:calc(100vh - 40px);
+        display:grid;
+        grid-template-columns: 340px 1fr;
+        gap:18px;
+        padding:18px;
+    }
+
+    /* Left column - chat list */
+    .left-pane{
+        background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
+        border-radius:18px;
+        padding:14px;
+        display:flex;
+        flex-direction:column;
+        min-height:0; /* for overflow children */
+        box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.04);
+    }
+    .header{
+        height:64px;
+        display:flex;
+        align-items:center;
+        gap:12px;
+        padding:8px 10px;
+    }
+    .brand{
+        display:flex;
+        align-items:center;
+        gap:10px;
+    }
+    .brand img{
+        width:46px;height:46px;border-radius:12px;border:2px solid rgba(255,255,255,0.08);
+        object-fit:cover;
+        background:linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+        padding:4px;
+    }
+    .brand h1{font-size:1.05rem;letter-spacing:0.2px;}
+    .header .search{
+        margin-left:auto;
+        display:flex;
+        align-items:center;
+        gap:8px;
+    }
+    .search input{
+        background:var(--glass);
+        border:none;padding:8px 10px;border-radius:12px;color:var(--text);
+        outline:none;min-width:120px;
+        transition: box-shadow .18s ease, transform .12s ease;
+    }
+    .search input:focus{ box-shadow: 0 6px 18px rgba(0,0,0,0.25); transform: translateY(-2px);}
+
+    .chat-list {
+        margin-top:8px;
+        overflow-y:auto;
+        padding-right:8px;
+        min-height:0; /* for flexbox scrolling */
+    }
+    .friend-card{
+        display:flex;
+        align-items:center;
+        gap:12px;
+        padding:12px;
+        border-radius:14px;
+        margin-bottom:12px;
+        cursor:pointer;
+        transition:transform .18s ease, background .18s ease, box-shadow .18s ease;
+        position:relative;
+        border: 1px solid transparent;
+    }
+    .friend-card:focus{outline:none; box-shadow: 0 8px 24px rgba(0,0,0,0.25); transform: translateY(-4px);}
+    .friend-card:hover{
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+        background: linear-gradient(90deg, rgba(255,255,255,0.015), rgba(255,255,255,0.01));
+    }
+    .friend-card .avatar{
+        width:56px;height:56px;border-radius:12px;overflow:hidden;border:2px solid rgba(255,255,255,0.06);
+        flex: 0 0 56px;
+        background: rgba(255,255,255,0.02);
+    }
+    .friend-card .avatar img{width:100%;height:100%;object-fit:cover;}
+    .friend-card .meta{flex:1;min-width:0;}
+    .friend-card .meta .name{font-weight:700;font-size:0.98rem;display:flex;align-items:center;gap:8px;}
+    .friend-card .meta .sub{font-size:0.82rem;color:rgba(255,255,255,0.9);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .friend-card .time{font-size:0.75rem;color:rgba(255,255,255,0.7);}
+
+    .badge{
+        position:absolute;right:12px;top:12px;background:linear-gradient(90deg,var(--accent1),var(--accent2));color:#111;border-radius:999px;padding:6px 8px;font-size:0.75rem;font-weight:700;
+        box-shadow:0 6px 18px rgba(0,0,0,0.25);
+    }
+
+    /* Right column - chat page */
+    .right-pane{
+        background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.02));
+        border-radius:18px;
+        display:flex;
+        flex-direction:column;
+        min-height:0;
+        overflow:hidden;
+        border: 1px solid rgba(255,255,255,0.04);
+    }
+
+    /* chat header */
+    .chat-top{
+        height:72px;
+        display:flex;
+        align-items:center;
+        gap:12px;
+        padding:12px 16px;
+        border-bottom:1px solid rgba(255,255,255,0.03);
+        background: linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    }
+    .chat-top .avatar{width:52px;height:52px;border-radius:12px;overflow:hidden;flex:0 0 52px;border:1px solid rgba(255,255,255,0.04);}
+    .chat-top .avatar img{width:100%;height:100%;object-fit:cover;}
+    .chat-top .title{display:flex;flex-direction:column;}
+    .chat-top .title .name{font-weight:700;font-size:1rem;}
+    .chat-top .title .status{font-size:0.8rem;color:rgba(255,255,255,0.7);margin-top:4px;}
+    .chat-top .actions{margin-left:auto;display:flex;gap:10px;align-items:center;}
+
+    /* messages area */
+    .messages {
+        flex:1;
+        overflow-y:auto;
+        padding:18px;
+        display:flex;
+        flex-direction:column;
+        gap:10px;
+        scroll-behavior: smooth;
+    }
+
+    /* Row + bubble layout */
+    .msg-row{display:flex;align-items:flex-end;gap:12px;max-width:100%;transition: transform .18s ease;}
+    .msg-row.me{justify-content:flex-end;}
+    .msg{max-width:78%;padding:12px 14px;margin-bottom:6px;border-radius:16px;font-size:0.95rem;word-wrap:break-word;position:relative;box-shadow:0 6px 20px rgba(0,0,0,0.12);transition: transform .12s ease, box-shadow .12s ease;}
+    .msg.me{background:linear-gradient(90deg,var(--accent1),var(--accent2));margin-left:auto;color:#111;border-bottom-right-radius:6px;}
+    .msg.other{background:rgba(255,255,255,0.04);color:var(--text);border-bottom-left-radius:6px;}
+    .msg:hover{transform: translateY(-4px); box-shadow: 0 14px 30px rgba(0,0,0,0.18);}
+    .msg .body{white-space:pre-wrap;line-height:1.2;}
+    .msg small.time{display:block;font-size:0.72rem;color:rgba(255,255,255,0.78);margin-top:8px;opacity:0.95;display:flex;gap:8px;align-items:center;}
+    .msg .status-tick{font-size:0.9rem;opacity:0.95;}
+    .msg .reaction-area{position:absolute;bottom:-14px;left:8px;display:flex;gap:6px;z-index:5;}
+    .msg .reactions{display:flex;gap:6px;align-items:center;}
+    .reaction-pill{background:rgba(255,255,255,0.12);padding:5px 8px;border-radius:999px;font-size:0.78rem;display:flex;gap:6px;align-items:center;cursor:pointer;backdrop-filter: blur(6px);transition: transform .12s ease, box-shadow .12s ease;}
+    .reaction-pill:hover{transform: translateY(-4px); box-shadow:0 8px 20px rgba(0,0,0,0.18);}
+
+    /* mini avatar on other messages */
+    .msg-row .mini-avatar{width:36px;height:36px;border-radius:8px;overflow:hidden;border:1px solid rgba(255,255,255,0.04);flex:0 0 36px;}
+    .msg-row.me .mini-avatar{visibility:hidden;width:36px;}
+
+    /* message tail (visual only) */
+    .msg.me::after, .msg.other::after {
+        content: "";
+        position: absolute;
+        bottom: 6px;
+        width: 12px;
+        height: 12px;
+        transform: rotate(45deg);
+        box-shadow: 0 6px 14px rgba(0,0,0,0.06);
+    }
+    .msg.me::after { right: -6px; background: linear-gradient(90deg,var(--accent1),var(--accent2)); }
+    .msg.other::after { left: -6px; background: rgba(255,255,255,0.04); }
+
+    /* input area */
+    .input-area{
+        display:flex;
+        align-items:center;
+        gap:10px;
+        padding:12px;
+        border-top:1px solid rgba(255,255,255,0.03);
+        background: linear-gradient(90deg, rgba(255,255,255,0.01), rgba(255,255,255,0.02));
+    }
+    .compose{
+        flex:1;display:flex;align-items:center;gap:10px;background:var(--glass);padding:8px;border-radius:28px;border:1px solid rgba(255,255,255,0.03);
+    }
+    .compose input{
+        flex:1;background:transparent;border:none;padding:10px 6px;color:var(--text);outline:none;font-size:0.95rem;
+    }
+    .compose .icon-btn{background:transparent;border:none;color:var(--text);font-size:1.05rem;cursor:pointer;padding:8px;border-radius:8px;}
+    .send-btn{
+        background:linear-gradient(90deg,var(--accent1),var(--accent2));border:none;padding:10px 16px;border-radius:18px;color:#111;font-weight:700;cursor:pointer;
+        box-shadow:0 8px 20px rgba(255,126,177,0.18);
+    }
+
+    /* attachment chip */
+    .attach-chip{
+        display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.04);padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,0.03);font-size:0.9rem;
+    }
+
+    /* typing indicator */
+    .typing-indicator{font-size:0.9rem;color:rgba(255,255,255,0.85);display:flex;gap:10px;align-items:center;}
+    .typing-dots{width:46px;height:12px;display:flex;gap:6px;align-items:center;}
+    .typing-dots span{width:8px;height:8px;background:rgba(255,255,255,0.18);border-radius:50%;display:inline-block;animation:typing 1s infinite;}
+    .typing-dots span:nth-child(2){animation-delay:.15s;}
+    .typing-dots span:nth-child(3){animation-delay:.3s;}
+    @keyframes typing{0%{transform:translateY(0);opacity:0.45;}50%{transform:translateY(-4px);opacity:1;}100%{transform:translateY(0);opacity:0.45;}}
+
+    /* mobile */
+    .mobile-nav{display:none;}
+    @media (max-width:900px){
+        .app-shell{grid-template-columns:1fr; padding:12px; gap:12px; max-width:100%; height:100vh;}
+        .left-pane{order:2;display:block; max-height: calc(100vh - 200px); overflow:auto;}
+        .right-pane{order:1;height:calc(100vh - 160px);}
+        .mobile-nav{display:flex;position:fixed;bottom:12px;left:50%;transform:translateX(-50%);gap:12px;background:var(--glass);padding:8px 12px;border-radius:999px;z-index:60;}
+    }
+
+    /* small accessibility/touch targets */
+    button.icon-btn{display:inline-flex;align-items:center;justify-content:center;min-width:36px;min-height:36px;}
+
+</style>
+
+</head>
+<body>
+
+<div class="app-shell" id="app">
+
+    <!-- LEFT - Chat list -->
+    <aside class="left-pane" aria-label="Chats list">
+        <div class="header">
+            <div class="brand" aria-hidden="false">
+                <img src="icons/logo.png" alt="PlayChat logo" />
+                <div>
+                    <h1>PlayChat</h1>
+                    <div style="font-size:0.78rem;color:rgba(255,255,255,0.8);"></div>
+                </div>
+            </div>
+
+            <div class="search" role="search">
+                <input id="globalSearch" placeholder="Search chats or users..." aria-label="Search chats or users" />
+                <button class="icon-btn" title="New chat" onclick="goFriends()" aria-label="New chat"><i class="fa-solid fa-plus"></i></button>
+            </div>
+        </div>
+
+        <div class="chat-list" id="chatList" role="list" aria-live="polite" aria-label="Conversations list"></div>
+    </aside>
+
+    <!-- RIGHT - Chat area -->
+    <section class="right-pane" id="chatPage" role="region" aria-label="Conversation">
+        <div class="chat-top header" id="chatUserHeader">
+            <div class="avatar" style="width:52px;height:52px;"><img id="chatUserImg" src="icons/default.png" alt="profile"></div>
+            <div class="title">
+                <div class="name" id="chatUserName">Select a chat</div>
+                <div class="status" id="chatUserStatus">Last seen recently</div>
+            </div>
+            <div class="actions" role="toolbar" aria-label="Conversation actions">
+                <button class="icon-btn" id="callBtn" title="Call" aria-label="Call"><i class="fa-solid fa-phone"></i></button>
+                <button class="icon-btn" id="videoBtn" title="Video" aria-label="Video"><i class="fa-solid fa-video"></i></button>
+                <button class="icon-btn" id="moreBtn" title="More" aria-label="More"><i class="fa-solid fa-ellipsis"></i></button>
+            </div>
+        </div>
+
+        <div class="messages" id="messageBox" aria-live="polite" aria-relevant="additions"></div>
+
+        <div style="padding:6px 12px;">
+            <div id="typingIndicator" style="display:none;" class="typing-indicator" aria-hidden="true">
+                <div class="typing-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+                <div><strong id="typingName">Someone</strong> is typing...</div>
+            </div>
+        </div>
+
+        <div class="input-area">
+            <div class="compose" role="form" aria-label="Message composer">
+                <!-- hidden file input for attachments -->
+                <input id="fileInput" type="file" accept="*/*" style="display:none;" />
+                <button class="icon-btn" id="attachBtn" title="Attach" aria-label="Attach"><i class="fa-solid fa-paperclip"></i></button>
+                <button class="icon-btn" id="emojiBtn" title="Emoji" aria-label="Emoji"><i class="fa-regular fa-face-smile"></i></button>
+
+                <div id="attachmentPreview" aria-hidden="true" style="display:none;"></div>
+
+                <input type="text" id="chatInput" placeholder="Type a message..." autocomplete="off" aria-label="Message input" />
+            </div>
+            <button class="send-btn" onclick="sendMessage()" id="sendBtn" aria-label="Send message"><i class="fa-solid fa-paper-plane"></i> <span style="margin-left:8px;">Send</span></button>
+        </div>
+    </section>
+
+</div>
+
+<!-- Mobile nav (keeps existing functions) -->
+<nav class="mobile-nav" aria-hidden="true">
+    <button onclick="goHome()" title="Home" aria-label="Home"><i class="fa-solid fa-house"></i></button>
+    <button class="active" title="Chats" aria-label="Chats"><i class="fa-solid fa-comment"></i></button>
+    <button onclick="goGames()" title="Games" aria-label="Games"><i class="fa-solid fa-gamepad"></i></button>
+    <button onclick="goProfile()" title="Profile" aria-label="Profile"><i class="fa-solid fa-user"></i></button>
+    <button onclick="goFriends()" title="Friends" aria-label="Friends"><i class="fa-solid fa-users"></i></button>
+</nav>
+
+<!-- Firebase + app scripts -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+<!-- Your existing firebase & auth -->
+<script src="firebase.js"></script>
+<script src="auth.js"></script>
+
+<!-- Updated chat logic -->
+<script src="chat.js"></script>
+
+</body>
+</html>
