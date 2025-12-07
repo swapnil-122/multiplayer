@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PlayChat Splash</title>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
+    * { margin:0; padding:0; box-sizing:border-box; font-family:'Poppins', sans-serif; }
+
+    body, html {
+        height:100%;
+        width:100%;
+        display:flex;
+        flex-direction:column;
+        justify-content:center;
+        align-items:center;
+        background: linear-gradient(-45deg, #667eea, #764ba2, #ff758c, #ff7eb3);
+        background-size: 400% 400%;
+        animation: gradientBG 15s ease infinite;
+        color:#fff;
+        overflow:hidden;
+    }
+
+    @keyframes gradientBG {
+        0%{background-position:0% 50%;}
+        50%{background-position:100% 50%;}
+        100%{background-position:0% 50%;}
+    }
+
+    .logo-container {
+        position: relative;
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        margin-bottom:30px;
+    }
+
+    .logo {
+        font-size: 3rem;
+        font-weight: 700;
+        letter-spacing: 2px;
+        background: linear-gradient(90deg, #ff758c, #ff7eb3);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: logoBounce 2s ease forwards;
+        opacity:0;
+        transform: scale(0.8);
+        text-align:center;
+    }
+
+    @keyframes logoBounce {
+        0% { opacity:0; transform: scale(0.6); }
+        50% { opacity:1; transform: scale(1.2); }
+        100% { opacity:1; transform: scale(1); }
+    }
+
+    /* Particle sparkle effect behind logo */
+    .sparkle {
+        position:absolute;
+        width:6px;
+        height:6px;
+        background:white;
+        border-radius:50%;
+        opacity:0;
+        animation: sparkleAnim 2s infinite;
+    }
+
+    @keyframes sparkleAnim {
+        0%{transform: translate(0,0) scale(0); opacity:1;}
+        50%{transform: translate(var(--x), var(--y)) scale(1); opacity:1;}
+        100%{transform: translate(var(--x), var(--y)) scale(0); opacity:0;}
+    }
+
+    .subtitle {
+        font-size: 1.2rem;
+        margin-top: 15px;
+        opacity:0;
+        text-align:center;
+        max-width:80%;
+    }
+
+    .typing {
+        border-right: 2px solid #fff;
+        white-space: nowrap;
+        overflow: hidden;
+    }
+
+    button {
+        margin-top: 40px;
+        padding: 14px 50px;
+        border: none;
+        border-radius: 50px;
+        background: linear-gradient(90deg, #ff758c, #ff7eb3);
+        color: #fff;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        opacity:0;
+        transform: translateY(20px);
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    button.show {
+        opacity:1;
+        transform: translateY(0);
+    }
+
+    button:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+
+    @media(max-width:400px){
+        .logo { font-size: 2.5rem; }
+        .subtitle { font-size: 1rem; }
+        button { padding: 12px 40px; font-size: 1rem; }
+    }
+</style>
+</head>
+<body>
+
+<div class="logo-container">
+    <div class="logo">PlayChat</div>
+</div>
+<div class="subtitle typing"></div>
+<button id="continueBtn" onclick="continueToLogin()">Continue</button>
+
+<script>
+    // Particle sparkles
+    const logoContainer = document.querySelector('.logo-container');
+    for(let i=0;i<15;i++){
+        const span = document.createElement('span');
+        span.className='sparkle';
+        span.style.setProperty('--x', (Math.random()*150-75)+'px');
+        span.style.setProperty('--y', (Math.random()*150-75)+'px');
+        span.style.animationDelay = (Math.random()*2)+'s';
+        logoContainer.appendChild(span);
+    }
+
+    // Typing effect
+    const subtitle = document.querySelector('.subtitle');
+    const text = 'Welcome to PlayChat';
+    let i = 0;
+    function typeWriter(){
+        if(i<text.length){
+            subtitle.innerHTML += text.charAt(i);
+            subtitle.style.opacity = 1;
+            i++;
+            setTimeout(typeWriter,100);
+        } else {
+            document.getElementById('continueBtn').classList.add('show');
+        }
+    }
+
+    // start typing after logo animation
+    setTimeout(typeWriter,1500);
+
+    function continueToLogin() {
+        window.location.href = "index.html";
+    }
+</script>
+</body>
+</html>
